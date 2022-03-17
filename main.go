@@ -2,16 +2,20 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
 )
 
 const (
+	DEBUG      = false
 	LAYOUT     = "2006/01/02"
 	SKIPHEADER = 2
 	FILENAME   = "ランダムデータ群"
+	PORT       = ":8080"
 )
 
 type (
@@ -84,5 +88,13 @@ func init() {
 }
 
 func main() {
-	fmt.Printf("%v\n", data)
+	r := gin.Default()
+
+	r.GET("/data", func(c *gin.Context) {
+		c.JSON(http.StatusOK, data)
+	})
+	if DEBUG {
+		fmt.Printf("%v\n", data)
+	}
+	r.Run(PORT)
 }
