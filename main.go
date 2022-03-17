@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	DEBUG      = true
 	LAYOUT     = "2006/01/02"
 	SKIPHEADER = 2
+	FILENAME   = "ランダムデータ群"
 )
 
 type (
@@ -54,7 +54,11 @@ func (d *UserData) parseExcel(rows [][]string) error {
 	return nil
 }
 
-func main() {
+var (
+	data UserData
+)
+
+func init() {
 	f, err := excelize.OpenFile("sample_data.xlsx")
 	if err != nil {
 		fmt.Println(err)
@@ -66,15 +70,19 @@ func main() {
 		}
 	}()
 
-	// Entry Excel data as go struct
-	rows, err := f.GetRows("ランダムデータ群")
+	// Entry Excel data as Go struct
+	rows, err := f.GetRows(FILENAME)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	data := UserData{}
 	err = data.parseExcel(rows)
-	if DEBUG {
-		fmt.Printf("%v\n", data)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+}
+
+func main() {
+	fmt.Printf("%v\n", data)
 }
