@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -88,13 +90,80 @@ func init() {
 }
 
 func main() {
-	r := gin.Default()
+	if DEBUG {
+		fmt.Printf("All data %v\n", data)
+	}
 
+	r := gin.Default()
+	// All data
 	r.GET("/data", func(c *gin.Context) {
 		c.JSON(http.StatusOK, data)
 	})
-	if DEBUG {
-		fmt.Printf("%v\n", data)
-	}
+	// One datum from UserID
+	// curl localhost:8080/OD77412
+	r.GET("/data/:userid", func(c *gin.Context) {
+		id := c.Param("userid")
+		datum, err := data.TraverseID(id)
+		if err != nil {
+			c.JSON(404, UserDatum{})
+			return
+		}
+		c.JSON(http.StatusOK, datum)
+	})
+	// curl localhost:8080/age?gt=10&lt=30
+	r.GET("/data/age", func(c *gin.Context) {
+		gt := intQuery(c, "gt") // age?gt=10 => gt==10
+		lt := intQuery(c, "lt") // age?lt=100 => lt==100
+		if lt == 0 {
+			lt = math.MaxInt64
+		}
+		ageData, err := data.TraverseAge(gt, lt)
+		if DEBUG {
+			fmt.Println("gt, lt", gt, lt)
+			fmt.Println("ageData", ageData)
+			fmt.Println(err)
+		}
+		if err != nil {
+			c.JSON(404, UserData{})
+			return
+		}
+		c.JSON(http.StatusOK, ageData)
+	})
 	r.Run(PORT)
+}
+
+// TraverseID : get a row by UserID
+func (d *UserData) TraverseID(id string) (UserDatum, error) {
+	for _, datum := range *d {
+		if datum.UserID == id {
+			return datum, nil
+		}
+	}
+	return UserDatum{}, errors.New("no data")
+}
+
+// TraverseAge : get a row by Age
+func (d *UserData) TraverseAge(gt, lt int) (data UserData, err error) {
+	for _, datum := range *d {
+		if datum.Age >= gt && datum.Age <= lt {
+			data = append(data, datum)
+		}
+	}
+	if len(data) == 0 {
+		err = errors.New("no data")
+	}
+	return
+}
+
+// intQuery parse query as int
+func intQuery(c *gin.Context, q string) int {
+	s, ok := c.GetQuery(q)
+	if !ok {
+		return 0
+	}
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return n
 }
