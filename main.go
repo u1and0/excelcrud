@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	data api.UserData
+	data api.Data
 )
 
 func init() {
@@ -65,22 +65,22 @@ func main() {
 		// Traverse alldata
 		traversedata, err := data.TraverseQuery(q)
 		if err != nil {
-			c.JSON(404, api.UserData{})
+			c.JSON(404, api.Data{})
 			fmt.Println(err)
 			return
 		}
 		c.JSON(http.StatusOK, traversedata)
 	})
-	// One datum from UserID
+	// One row from UserID
 	// curl localhost:8080/OD77412
 	r.GET("/data/:userid", func(c *gin.Context) {
 		id := c.Param("userid")
-		datum, err := data.TraverseID(id)
+		row, err := data.TraverseID(id)
 		if err != nil {
-			c.JSON(404, api.UserDatum{})
+			c.JSON(404, api.Row{})
 			return
 		}
-		c.JSON(http.StatusOK, datum)
+		c.JSON(http.StatusOK, row)
 	})
 
 	r.Run(PORT)

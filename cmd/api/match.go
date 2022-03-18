@@ -2,19 +2,19 @@ package api
 
 import "strings"
 
-func (d *UserData) MatchID(s string) (data UserData) {
-	for _, datum := range *d {
-		if strings.Contains(datum.UserID, s) {
-			data = append(data, datum)
+func (d *Data) MatchID(s string) (data Data) {
+	for _, row := range *d {
+		if strings.Contains(row.UserID, s) {
+			data = append(data, row)
 		}
 	}
 	return
 }
 
-func (d *UserData) MatchAge(g, l int) (data UserData) {
-	for _, datum := range *d {
-		if datum.Age >= g && datum.Age <= l {
-			data = append(data, datum)
+func (d *Data) MatchAge(g, l int) (data Data) {
+	for _, row := range *d {
+		if row.Age >= g && row.Age <= l {
+			data = append(data, row)
 		}
 	}
 	return

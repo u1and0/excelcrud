@@ -10,7 +10,20 @@ const (
 	SKIPHEADER = 2
 )
 
-func (d *UserData) ParseExcel(rows [][]string) error {
+type (
+	Row struct {
+		EntryDate  time.Time `json:"entrydate"`
+		UserID     string    `json:"userid"`
+		Name       string    `json:"name"`
+		Sex        string    `json:"sex"`
+		Age        int       `json:"age"`
+		TotalMoney int       `json:"totalmoney"`
+		BirthDay   time.Time `json:"birthday"`
+	}
+	Data []Row
+)
+
+func (d *Data) ParseExcel(rows [][]string) error {
 	for i, row := range rows {
 		if i < SKIPHEADER {
 			continue
@@ -31,8 +44,8 @@ func (d *UserData) ParseExcel(rows [][]string) error {
 		if err != nil {
 			return err
 		}
-		datum := UserDatum{r0, row[1], row[2], row[3], r4, r5, r6}
-		*d = append(*d, datum)
+		row := Row{r0, row[1], row[2], row[3], r4, r5, r6}
+		*d = append(*d, row)
 	}
 	return nil
 }
