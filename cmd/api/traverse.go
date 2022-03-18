@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"math"
 	"time"
 
 	query "github.com/u1and0/excelcrud/cmd/query"
@@ -32,10 +33,14 @@ func (d *UserData) TraverseID(id string) (UserDatum, error) {
 
 // TraverseQuery : get rows by Query
 func (d *UserData) TraverseQuery(q *query.Query) (data UserData, err error) {
-	data = d.MatchID(q.UserID)
-	data = data.MatchAge(q.AgeGreaterEqual, q.AgeLessEqual)
+	if q.UserID != "" {
+		data = d.MatchID(q.UserID)
+	}
+	if q.AgeGreaterEqual != 0 && q.AgeLessEqual != math.MaxInt {
+		data = data.MatchAge(q.AgeGreaterEqual, q.AgeLessEqual)
+	}
 	if len(data) == 0 {
-		err = errors.New("no data")
+		err = errors.New("no match")
 	}
 	return
 }
@@ -48,7 +53,7 @@ func (d *UserData) TraverseAge(gt, lt int) (data UserData, err error) {
 		}
 	}
 	if len(data) == 0 {
-		err = errors.New("no data")
+		err = errors.New("no match")
 	}
 	return
 }
