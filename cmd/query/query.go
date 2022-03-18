@@ -1,6 +1,10 @@
 package query
 
-import "github.com/gin-gonic/gin"
+import (
+	"math"
+
+	"github.com/gin-gonic/gin"
+)
 
 type (
 	Query struct {
@@ -25,5 +29,9 @@ func New(c *gin.Context) (*Query, error) {
 	// query := Query{Logging: true, Limit: -1}
 	var q Query
 	err := c.ShouldBind(&q)
+	// Default values
+	if q.AgeLessEqual < 1 {
+		q.AgeLessEqual = math.MaxInt
+	}
 	return &q, err
 }
