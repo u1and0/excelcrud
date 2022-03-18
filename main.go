@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -150,25 +149,7 @@ func main() {
 		}
 		c.JSON(http.StatusOK, datum)
 	})
-	// curl localhost:8080/age?gt=10&lt=30
-	r.GET("/data/age", func(c *gin.Context) {
-		gt := intQuery(c, "gt") // age?gt=10 => gt==10
-		lt := intQuery(c, "lt") // age?lt=100 => lt==100
-		if lt == 0 {
-			lt = math.MaxInt64
-		}
-		ageData, err := data.TraverseAge(gt, lt)
-		if DEBUG {
-			fmt.Println("gt, lt", gt, lt)
-			fmt.Println("ageData", ageData)
-			fmt.Println(err)
-		}
-		if err != nil {
-			c.JSON(404, UserData{})
-			return
-		}
-		c.JSON(http.StatusOK, ageData)
-	})
+
 	r.Run(PORT)
 }
 
@@ -221,17 +202,4 @@ func (d *UserData) TraverseAge(gt, lt int) (data UserData, err error) {
 		err = errors.New("no data")
 	}
 	return
-}
-
-// intQuery parse query as int
-func intQuery(c *gin.Context, q string) int {
-	s, ok := c.GetQuery(q)
-	if !ok {
-		return 0
-	}
-	n, err := strconv.Atoi(s)
-	if err != nil {
-		return 0
-	}
-	return n
 }
