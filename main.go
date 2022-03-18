@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,7 @@ const (
 
 type (
 	UserDatum struct {
-		Entrydate  time.Time `json:"entrydate"`
+		EntryDate  time.Time `json:"entrydate"`
 		UserID     string    `json:"userid"`
 		Name       string    `json:"name"`
 		Sex        string    `json:"sex"`
@@ -31,7 +32,30 @@ type (
 		BirthDay   time.Time `json:"birthday"`
 	}
 	UserData []UserDatum
+	Query    struct {
+		// EntryDateGreaterEqual  [8]int `form:"edge"`
+		// EntryDateLessEqual  [8]int `form:"edle"`
+		UserID string `form:"userid"`
+		// Name       string    `form:"name"`
+		// Sex        string    `form:"sex"`
+		AgeGreaterEqual int `form:"agege"`
+		AgeLessEqual    int `form:"agele"`
+		// TotalMoney int       `form:"totalmoney"`
+		// BirthDay   time.Time `form:"birthday"`
+	}
 )
+
+// New : Query constructor
+// Default value Logging: ture <= always log search query
+//									if ommited URL request &logging
+// Default value Limit: -1 <= dump all result
+//									if ommited URL request &limit
+func New(c *gin.Context) (*Query, error) {
+	// query := Query{Logging: true, Limit: -1}
+	var q Query
+	err := c.ShouldBind(&q)
+	return &q, err
+}
 
 func (d *UserData) parseExcel(rows [][]string) error {
 	for i, row := range rows {
@@ -95,9 +119,27 @@ func main() {
 	}
 
 	r := gin.Default()
-	// All data
 	r.GET("/data", func(c *gin.Context) {
-		c.JSON(http.StatusOK, data)
+		q, err := New(c)
+		fmt.Printf("%#v\n", q)
+		if err != nil {
+			fmt.Println(err)
+		}
+		if q == &(Query{}) {
+			// if not query parameter
+			// Return all data
+			c.JSON(http.StatusOK, data)
+			return
+		}
+		// if query parameter
+		// Traverse alldata
+		traversedata, err := data.TraverseQuery(q)
+		if err != nil {
+			c.JSON(404, UserData{})
+			fmt.Println(err)
+			return
+		}
+		c.JSON(http.StatusOK, traversedata)
 	})
 	// One datum from UserID
 	// curl localhost:8080/OD77412
@@ -142,7 +184,35 @@ func (d *UserData) TraverseID(id string) (UserDatum, error) {
 	return UserDatum{}, errors.New("no data")
 }
 
-// TraverseAge : get a row by Age
+// TraverseQuery : get a row by Query
+func (d *UserData) TraverseQuery(q *Query) (data UserData, err error) {
+	data = d.MatchID(q.UserID)
+	data = data.MatchAge(q.AgeGreaterEqual, q.AgeLessEqual)
+	if len(data) == 0 {
+		err = errors.New("no data")
+	}
+	return
+}
+
+func (d *UserData) MatchID(s string) (data UserData) {
+	for _, datum := range *d {
+		if strings.Contains(datum.UserID, s) {
+			data = append(data, datum)
+		}
+	}
+	return
+}
+
+func (d *UserData) MatchAge(g, l int) (data UserData) {
+	for _, datum := range *d {
+		if datum.Age >= g && datum.Age <= l {
+			data = append(data, datum)
+		}
+	}
+	return
+}
+
+// TraverseQuery : get a row by Age
 func (d *UserData) TraverseAge(gt, lt int) (data UserData, err error) {
 	for _, datum := range *d {
 		if datum.Age >= gt && datum.Age <= lt {
