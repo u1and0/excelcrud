@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	DEBUG      = false
+	DEBUG      = true
 	LAYOUT     = "2006/01/02"
 	SKIPHEADER = 2
 	FILENAME   = "ランダムデータ群"
@@ -114,18 +114,16 @@ func init() {
 }
 
 func main() {
-	if DEBUG {
-		fmt.Printf("All data %v\n", data)
-	}
-
 	r := gin.Default()
 	r.GET("/data", func(c *gin.Context) {
 		q, err := New(c)
-		fmt.Printf("%#v\n", q)
+		if DEBUG {
+			fmt.Printf("%#v\n", q)
+		}
 		if err != nil {
 			fmt.Println(err)
 		}
-		if q == &(Query{}) {
+		if *q == (Query{}) {
 			// if not query parameter
 			// Return all data
 			c.JSON(http.StatusOK, data)
@@ -184,7 +182,7 @@ func (d *UserData) TraverseID(id string) (UserDatum, error) {
 	return UserDatum{}, errors.New("no data")
 }
 
-// TraverseQuery : get a row by Query
+// TraverseQuery : get rows by Query
 func (d *UserData) TraverseQuery(q *Query) (data UserData, err error) {
 	data = d.MatchID(q.UserID)
 	data = data.MatchAge(q.AgeGreaterEqual, q.AgeLessEqual)
