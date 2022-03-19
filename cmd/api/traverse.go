@@ -1,45 +1,54 @@
 package api
 
 import (
-	"errors"
 	"math"
+	"strings"
 
 	query "github.com/u1and0/excelcrud/cmd/query"
 )
 
-// TraverseID : get a row by UserID
-func (d *Data) TraverseID(id string) (Row, error) {
-	for _, row := range *d {
-		if row.UserID == id {
-			return row, nil
+// Retrive は検索して、部分一致したdataを返す
+// Match は検索して、完全一致したdatumを返す
+
+// MatchID : Get a datum by UserID
+func (d *Data) MatchID(id string) Datum {
+	for _, datum := range *d {
+		if datum.UserID == id {
+			return datum
 		}
 	}
-	return Row{}, errors.New("no data")
+	return *New()
 }
 
-// TraverseQuery : get rows by Query
-func (d *Data) TraverseQuery(q *query.Query) (data Data, err error) {
+// RetriveQuery : Get data by Query
+func (d *Data) RetriveQuery(q *query.Query) (data Data) {
+	// Shallow copy
+	data = *d
 	if q.UserID != "" {
-		data = d.MatchID(q.UserID)
+		data = data.RetriveID(q.UserID)
 	}
 	if q.AgeGreaterEqual != 0 && q.AgeLessEqual != math.MaxInt {
-		data = data.MatchAge(q.AgeGreaterEqual, q.AgeLessEqual)
-	}
-	if len(data) == 0 {
-		err = errors.New("no match")
+		data = data.RetriveAge(q.AgeGreaterEqual, q.AgeLessEqual)
 	}
 	return
 }
 
-// TraverseQuery : get a row by Age
-func (d *Data) TraverseAge(gt, lt int) (data Data, err error) {
-	for _, row := range *d {
-		if row.Age >= gt && row.Age <= lt {
-			data = append(data, row)
+// RetriveID : filtering Data.ID contains "s"
+func (d *Data) RetriveID(s string) (data Data) {
+	for _, datum := range *d {
+		if strings.Contains(datum.UserID, s) {
+			data = append(data, datum)
 		}
 	}
-	if len(data) == 0 {
-		err = errors.New("no match")
+	return
+}
+
+// RetriveAge : filtering Data.Age of greater equal "g", less equal "l"
+func (d *Data) RetriveAge(g, l int) (data Data) {
+	for _, datum := range *d {
+		if datum.Age >= g && datum.Age <= l {
+			data = append(data, datum)
+		}
 	}
 	return
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -33,12 +34,12 @@ func init() {
 	}()
 
 	// Entry Excel data as Go struct
-	rows, err := f.GetRows(FILENAME)
+	datums, err := f.GetRows(FILENAME)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	err = data.ParseExcel(rows)
+	err = data.ParseExcel(datums)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -47,6 +48,7 @@ func init() {
 
 func main() {
 	r := gin.Default()
+
 	r.GET("/data", func(c *gin.Context) {
 		q, err := query.New(c)
 		if DEBUG {
@@ -62,25 +64,33 @@ func main() {
 			return
 		}
 		// if query parameter
-		// Traverse alldata
-		traversedata, err := data.TraverseQuery(q)
+		// Retrive alldata
+		retrivedata := data.RetriveQuery(q)
+		if len(retrivedata) == 0 {
+			err = errors.New("no match")
+		}
 		if err != nil {
 			c.JSON(404, api.Data{})
 			fmt.Println(err)
 			return
 		}
-		c.JSON(http.StatusOK, traversedata)
+		c.JSON(http.StatusOK, retrivedata)
 	})
-	// One row from UserID
+
+	// One datum from UserID
 	// curl localhost:8080/OD77412
 	r.GET("/data/:userid", func(c *gin.Context) {
+		var err error
 		id := c.Param("userid")
-		row, err := data.TraverseID(id)
+		datum := data.MatchID(id)
+		if datum == (api.Datum{}) {
+			err = errors.New("no data")
+		}
 		if err != nil {
-			c.JSON(404, api.Row{})
+			c.JSON(404, api.Datum{})
 			return
 		}
-		c.JSON(http.StatusOK, row)
+		c.JSON(http.StatusOK, datum)
 	})
 
 	r.Run(PORT)
