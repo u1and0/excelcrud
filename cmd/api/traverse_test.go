@@ -1,6 +1,11 @@
 package api
 
-import "testing"
+import (
+	"testing"
+	"time"
+
+	query "github.com/u1and0/excelcrud/cmd/query"
+)
 
 func TestData_MatchID(t *testing.T) {
 	data := Data{
@@ -55,6 +60,26 @@ func TestData_FilterByAge(t *testing.T) {
 	for i, datum := range expected {
 		if actual[i] != datum {
 			t.Fatalf("got: %v want: %v", actual[i].UserID, datum.UserID)
+		}
+	}
+}
+
+func TestData_FilterByEntryDate(t *testing.T) {
+	data := Data{
+		Datum{UserID: "ABCD",
+			EntryDate: time.Date(1999, 1, 2, 0, 0, 0, 0, query.Loc)},
+		Datum{UserID: "WXYZ",
+			EntryDate: time.Date(2010, 1, 1, 0, 0, 0, 0, query.Loc)},
+		Datum{UserID: "BCDE",
+			EntryDate: time.Date(2999, 1, 2, 0, 0, 0, 0, query.Loc)},
+	}
+	expected := Data{data[0], data[1]}
+	g := time.Date(1999, 1, 2, 0, 0, 0, 0, query.Loc)
+	l := time.Date(2010, 1, 1, 0, 0, 0, 0, query.Loc)
+	actual := data.FilterByEntryDate(g, l)
+	for i, datum := range actual {
+		if expected[i] != datum {
+			t.Fatalf("got: %#v want: %#v", actual[i].EntryDate, datum.EntryDate)
 		}
 	}
 }

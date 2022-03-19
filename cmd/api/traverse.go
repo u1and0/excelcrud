@@ -3,6 +3,7 @@ package api
 import (
 	"math"
 	"strings"
+	"time"
 
 	query "github.com/u1and0/excelcrud/cmd/query"
 )
@@ -30,6 +31,11 @@ func (d *Data) FilterByQuery(q *query.Query) (data Data) {
 	if q.AgeGreaterEqual != 0 && q.AgeLessEqual != math.MaxInt {
 		data = data.FilterByAge(q.AgeGreaterEqual, q.AgeLessEqual)
 	}
+	ge := q.EntryDateGreaterEqual != query.MinDate
+	le := q.EntryDateLessEqual != query.MaxDate
+	if ge && le {
+		data = data.FilterByEntryDate(q.EntryDateGreaterEqual, q.EntryDateLessEqual)
+	}
 	return
 }
 
@@ -47,6 +53,18 @@ func (d *Data) FilterByID(s string) (data Data) {
 func (d *Data) FilterByAge(g, l int) (data Data) {
 	for _, datum := range *d {
 		if datum.Age >= g && datum.Age <= l {
+			data = append(data, datum)
+		}
+	}
+	return
+}
+
+// FilterByEntryDate : Filtering data greater equal "g", less equal "l" in Datum.Age
+func (d *Data) FilterByEntryDate(g, l time.Time) (data Data) {
+	for _, datum := range *d {
+		// Beforeの否定で以上
+		// After の否定で以下
+		if !datum.EntryDate.Before(g) && !datum.EntryDate.After(l) {
 			data = append(data, datum)
 		}
 	}

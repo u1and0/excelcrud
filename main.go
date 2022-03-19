@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	DEBUG    = true
-	FILENAME = "ランダムデータ群"
-	PORT     = ":8080"
+	DEBUG     = true
+	FILENAME  = "sample_data.xlsx"
+	SHEETNAME = "ランダムデータ群"
+	PORT      = ":8080"
 )
 
 var (
@@ -22,7 +23,7 @@ var (
 )
 
 func init() {
-	f, err := excelize.OpenFile("sample_data.xlsx")
+	f, err := excelize.OpenFile(FILENAME)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -30,11 +31,13 @@ func init() {
 	defer func() {
 		if err := f.Close(); err != nil {
 			fmt.Println(err)
+			return
 		}
+		fmt.Printf("Load %s done.\n", FILENAME)
 	}()
 
 	// Entry Excel data as Go struct
-	datums, err := f.GetRows(FILENAME)
+	datums, err := f.GetRows(SHEETNAME)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -44,6 +47,9 @@ func init() {
 		fmt.Println(err)
 		return
 	}
+	if DEBUG {
+		fmt.Printf("[DEBUG] all data: %#v\n", data)
+	}
 }
 
 func main() {
@@ -52,7 +58,7 @@ func main() {
 	r.GET("/data", func(c *gin.Context) {
 		q, err := query.New(c)
 		if DEBUG {
-			fmt.Printf("%#v\n", q)
+			fmt.Printf("[DEBUG] query: %#v\n", q)
 		}
 		if err != nil {
 			fmt.Println(err)

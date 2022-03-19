@@ -2,15 +2,23 @@ package query
 
 import (
 	"math"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
+var (
+	Loc         = time.UTC
+	MinDate     = time.Date(1, 1, 1, 0, 0, 0, 0, Loc)
+	MaxDate     = time.Date(9999, 12, 31, 0, 0, 0, 0, Loc)
+	defaultdate = time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
+)
+
 type (
 	Query struct {
-		// EntryDateGreaterEqual  [8]int `form:"edge"`
-		// EntryDateLessEqual  [8]int `form:"edle"`
-		UserID string `form:"userid"`
+		EntryDateGreaterEqual time.Time `form:"edge" time_format:"2006-01-02" time_utc:"1"`
+		EntryDateLessEqual    time.Time `form:"edle" time_format:"2006-01-02" time_utc:"1"`
+		UserID                string    `form:"userid"`
 		// Name       string    `form:"name"`
 		// Sex        string    `form:"sex"`
 		AgeGreaterEqual int `form:"agege"`
@@ -21,13 +29,12 @@ type (
 )
 
 // New : Query constructor
-// Default value Logging: ture <= always log search query
-//									if ommited URL request &logging
-// Default value Limit: -1 <= dump all result
-//									if ommited URL request &limit
 func New(c *gin.Context) (*Query, error) {
 	// query := Query{Logging: true, Limit: -1}
-	var q Query
+	q := Query{
+		EntryDateGreaterEqual: MinDate,
+		EntryDateLessEqual:    MaxDate,
+	}
 	err := c.ShouldBind(&q)
 	// Default values
 	if q.AgeLessEqual < 1 {
