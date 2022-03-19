@@ -7,10 +7,10 @@ import (
 	query "github.com/u1and0/excelcrud/cmd/query"
 )
 
-// Retrive は検索して、部分一致したdataを返す
+// FilterBy は検索して、部分一致したdataを返す
 // Match は検索して、完全一致したdatumを返す
 
-// MatchID : Get a datum by UserID
+// MatchID : Match a datum by UserID
 func (d *Data) MatchID(id string) Datum {
 	for _, datum := range *d {
 		if datum.UserID == id {
@@ -20,21 +20,21 @@ func (d *Data) MatchID(id string) Datum {
 	return *New()
 }
 
-// RetriveQuery : Get data by Query
-func (d *Data) RetriveQuery(q *query.Query) (data Data) {
+// FilterByQuery : Filtering data by Query
+func (d *Data) FilterByQuery(q *query.Query) (data Data) {
 	// Shallow copy
 	data = *d
 	if q.UserID != "" {
-		data = data.RetriveID(q.UserID)
+		data = data.FilterByID(q.UserID)
 	}
 	if q.AgeGreaterEqual != 0 && q.AgeLessEqual != math.MaxInt {
-		data = data.RetriveAge(q.AgeGreaterEqual, q.AgeLessEqual)
+		data = data.FilterByAge(q.AgeGreaterEqual, q.AgeLessEqual)
 	}
 	return
 }
 
-// RetriveID : filtering Data.ID contains "s"
-func (d *Data) RetriveID(s string) (data Data) {
+// FilterByID : Filtering data contains "s" in Datum.ID
+func (d *Data) FilterByID(s string) (data Data) {
 	for _, datum := range *d {
 		if strings.Contains(datum.UserID, s) {
 			data = append(data, datum)
@@ -43,8 +43,8 @@ func (d *Data) RetriveID(s string) (data Data) {
 	return
 }
 
-// RetriveAge : filtering Data.Age of greater equal "g", less equal "l"
-func (d *Data) RetriveAge(g, l int) (data Data) {
+// FilterByAge : Filtering data greater equal "g", less equal "l" in Datum.Age
+func (d *Data) FilterByAge(g, l int) (data Data) {
 	for _, datum := range *d {
 		if datum.Age >= g && datum.Age <= l {
 			data = append(data, datum)

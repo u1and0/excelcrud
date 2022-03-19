@@ -65,7 +65,7 @@ func main() {
 		}
 		// if query parameter
 		// Retrive alldata
-		retrivedata := data.RetriveQuery(q)
+		retrivedata := data.FilterByQuery(q)
 		if len(retrivedata) == 0 {
 			err = errors.New("no match")
 		}
